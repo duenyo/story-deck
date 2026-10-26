@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#16261f">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="A lofi card table for story notes.">
+<title>Story Deck</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preload" href="fonts/pixelify-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/lora-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/sheets.css">
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<canvas id="table" aria-label="Your card table"></canvas>
+<div class="fx-glow"></div>
+<div class="fx-vignette"></div>
+
+<button id="hud-plaque" class="plaque" type="button" aria-label="Decks (hold for tuning)">
+  <span id="plaque-name" class="plaque-name">Story Deck</span>
+  <span id="plaque-line" class="plaque-line">&nbsp;</span>
+</button>
+<button id="new-idea" class="btn btn-lit" type="button">+ Idea</button>
+<p id="hint" aria-live="polite"></p>
+
+<div id="lift">
+  <div id="lift-dim"></div>
+  <div id="lift-cards"></div>
+  <div id="infobox">
+    <div class="ib-title"></div>
+    <div class="ib-body"></div>
+    <div class="ib-badges"></div>
+  </div>
+</div>
+
+<section id="editor" hidden aria-label="Write a card">
+  <div id="ed-paper" class="ed-paper">
+    <div class="ed-head">
+      <canvas id="ed-face" class="px" width="44" height="62" aria-hidden="true"></canvas>
+      <div class="ed-meta">
+        <span id="ed-kind">Idea</span>
+        <span id="ed-stamp"></span>
+        <span id="ed-deck"></span>
+      </div>
+    </div>
+    <textarea id="ed-text" placeholder="An idea…" autocomplete="off" autocapitalize="sentences" spellcheck="true" aria-label="Card text"></textarea>
+  </div>
+  <div class="ed-bar">
+    <button id="ed-bin" class="btn btn-red" type="button" hidden>Bin</button>
+    <span class="spacer"></span>
+    <button id="ed-done" class="btn btn-lit" type="button">Done</button>
+  </div>
+</section>
+
+<section id="decksheet" class="sheet" hidden aria-label="Decks">
+  <div class="sheet-panel">
+    <h2>Decks</h2>
+    <ul id="deck-list" class="deck-list"></ul>
+    <div class="row"><button id="deck-new" class="btn" type="button">+ New deck</button></div>
+    <h3>Sample</h3>
+    <div id="sample-row"></div>
+    <h3>Export</h3>
+    <div class="row">
+      <button id="deck-export-md" class="btn" type="button">This deck as a manuscript (.md)</button>
+      <button id="deck-export-json" class="btn" type="button">Backup of every card (.json)</button>
+    </div>
+  </div>
+</section>
+
+<section id="tuning" class="sheet" hidden aria-label="Tuning">
+  <div class="sheet-panel">
+    <h2>Tuning</h2>
+    <p class="sheet-note">Changes apply right away. Try the move again after each change, then save the ones you like.</p>
+    <h3>Spreads show</h3>
+    <div id="t-stage" class="seg" role="group" aria-label="How spreads show"></div>
+    <div id="t-sliders"></div>
+    <label class="switch"><input id="t-reduced" type="checkbox"> Reduced motion: quick fades instead of big moves</label>
+    <div class="row">
+      <button id="t-save" class="btn btn-lit" type="button">Save as default</button>
+      <button id="t-copy" class="btn" type="button">Copy settings</button>
+      <button id="t-reset" class="btn btn-quiet" type="button">Reset</button>
+    </div>
+    <p id="t-saved" class="saved-note"></p>
+    <h3>Export</h3>
+    <div class="row">
+      <button id="t-export-md" class="btn" type="button">This deck as a manuscript (.md)</button>
+      <button id="t-export-json" class="btn" type="button">Backup of every card (.json)</button>
+    </div>
+    <p id="t-build" class="build"></p>
+  </div>
+</section>
+
+<div class="fx-scan"></div>
+<div id="toast" role="status" hidden><span id="toast-text"></span><button id="toast-btn" class="btn" type="button" hidden></button></div>
+<div id="inset-probe"></div>
+
+<script>
+// Capture first: the New idea shortcut, or text shared from another app, opens a blank card
+// with the keyboard up before anything else loads.
+(function () {
+  var q = new URLSearchParams(location.search);
+  var shared = [q.get('title'), q.get('text'), q.get('url')].filter(Boolean).join('\n');
+  if (!q.has('new') && !shared) return;
+  var ed = document.getElementById('editor'), ta = document.getElementById('ed-text');
+  ed.hidden = false; ed.classList.add('on'); ed.setAttribute('data-boot', '1');
+  document.body.classList.add('writing');
+  if (shared) ta.value = shared;
+  ta.focus();
+})();
+</script>
+</body>
+</html>

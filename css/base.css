@@ -1,0 +1,95 @@
+/* The workshop: fonts, the table, lamp light and scanlines, and the plaques and buttons over the table.
+   Pixel panels come from the drawing rules as --img-* variables (js/art/panels.js). */
+@font-face { font-family: 'Pixelify Sans'; src: url(../fonts/pixelify-sans-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url(../fonts/pixelify-sans-latin-600-normal.woff2) format('woff2'); font-weight: 600; font-display: swap; }
+@font-face { font-family: 'Pixelify Sans'; src: url(../fonts/pixelify-sans-latin-700-normal.woff2) format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'Lora'; src: url(../fonts/lora-latin-400-normal.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Lora'; src: url(../fonts/lora-latin-400-italic.woff2) format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Lora'; src: url(../fonts/lora-latin-600-normal.woff2) format('woff2'); font-weight: 600; font-display: swap; }
+
+:root {
+  --cream: #fff3dc;
+  --cream-dim: #f0d9ac;
+  --ink: #2a1c12;
+  --mat: #1f3a2e;
+  --gold: #f6d873;
+  --pixel: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  --read: 'Lora', Georgia, 'Times New Roman', serif;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --scan: 0.3;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: var(--mat); }
+body {
+  font-family: var(--pixel); color: var(--cream);
+  -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; -webkit-text-size-adjust: 100%;
+}
+button { font: inherit; color: inherit; }
+:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.px { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+#table { position: fixed; left: 0; top: 0; display: block; touch-action: none; transition: opacity 160ms; }
+#table.blink { opacity: 0.35; transition: none; }
+.fx-glow, .fx-vignette, .fx-scan { position: fixed; inset: 0; pointer-events: none; }
+.fx-glow { z-index: 1; background: radial-gradient(ellipse 75% 50% at 50% 40%, rgba(255, 208, 140, 0.16), rgba(255, 208, 140, 0) 70%); }
+.fx-vignette { z-index: 1; background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.45) 100%); }
+.fx-scan { z-index: 40; opacity: var(--scan); background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.26) 0 1px, rgba(0, 0, 0, 0) 1px 3px); }
+#inset-probe { position: fixed; left: 0; top: 0; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+
+/* plaques and buttons: 9-slice pixel frames */
+.plaque, .btn {
+  border-style: solid; border-width: 6px; border-image: var(--img-plaque) 3 fill / 6px stretch;
+  image-rendering: pixelated; background: none;
+}
+.btn {
+  min-height: 46px; padding: 0 14px; font-size: 16px; font-weight: 600; line-height: 1.1; color: var(--cream);
+  cursor: pointer; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.45)); touch-action: manipulation;
+}
+.btn:active { transform: translateY(2px); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.45)); }
+.btn-lit { border-image-source: var(--img-plaqueLit); }
+.btn-red { border-image-source: var(--img-red); }
+.btn-quiet { opacity: 0.85; }
+.btn-small { min-height: 44px; font-size: 14px; padding: 0 10px; }
+
+#hud-plaque {
+  position: fixed; z-index: 10; left: 14px; top: calc(14px + var(--safe-t));
+  display: flex; flex-direction: column; align-items: flex-start; max-width: calc(100vw - 28px);
+  padding: 2px 8px 3px; text-align: left; cursor: pointer; touch-action: manipulation;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.45)); transition: opacity 200ms;
+}
+.plaque-name { font-size: 18px; font-weight: 700; letter-spacing: 1px; line-height: 1.2; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.plaque-line { font-size: 13px; line-height: 1.3; color: var(--cream-dim); white-space: nowrap; }
+#new-idea {
+  position: fixed; z-index: 10; left: 14px; bottom: calc(18px + var(--safe-b));
+  min-height: 54px; padding: 0 18px; font-size: 19px; transition: opacity 200ms;
+}
+#new-idea.nudge { animation: nudge 0.6s ease-in-out 2; }
+@keyframes nudge { 0%, 100% { transform: none; } 30% { transform: translateY(-6px) rotate(-2deg); } 60% { transform: translateY(0) rotate(2deg); } }
+body.hud-off #hud-plaque, body.hud-off #new-idea, body.writing #hud-plaque, body.writing #new-idea { opacity: 0; pointer-events: none; }
+#hint {
+  position: fixed; z-index: 30; left: 50%; bottom: calc(84px + var(--safe-b)); transform: translateX(-50%);
+  width: max-content; max-width: calc(100vw - 32px); margin: 0; padding: 4px 10px;
+  text-align: center; font-size: 14px; line-height: 1.35; color: rgba(255, 243, 220, 0.85);
+  background: rgba(12, 10, 8, 0.55); opacity: 0; transition: opacity 500ms; pointer-events: none;
+}
+body.hud-off #hint { bottom: calc(22px + var(--safe-b)); }
+#hint.on { opacity: 1; }
+body:not(.ready) #hud-plaque .plaque-line { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { #new-idea.nudge { animation: none; } }
+
+/* the toast */
+#toast {
+  position: fixed; z-index: 70; left: 50%; bottom: calc(90px + var(--safe-b)); transform: translate(-50%, 12px);
+  display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px); padding: 2px 4px 2px 10px;
+  border-style: solid; border-width: 6px; border-image: var(--img-tip) 3 fill / 6px stretch; image-rendering: pixelated;
+  font-size: 15px; line-height: 1.3; color: var(--cream); opacity: 0; transition: opacity 200ms, transform 240ms;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.5));
+}
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+#toast-text { padding: 8px 0; }
+#toast .btn { min-height: 40px; font-size: 14px; }

@@ -1,0 +1,116 @@
+/* Everything that sits above the table: the lifted card and its info box, the writing sheet,
+   the deck list and the tuning panel. Long text uses a readable font; pixel fonts stay on cards and labels. */
+
+/* ---------- the lifted card ---------- */
+#lift { position: fixed; inset: 0; z-index: 20; pointer-events: none; touch-action: none; }
+#lift.on { pointer-events: auto; }
+#lift-dim { position: absolute; inset: 0; background: rgba(6, 5, 4, 0.55); opacity: 0; transition: opacity 280ms, background 280ms; }
+#lift.on #lift-dim { opacity: 1; }
+#lift.conn #lift-dim { background: rgba(6, 5, 4, 0.72); }
+#lift-cards { position: absolute; inset: 0; }
+.lc { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; will-change: transform, opacity; }
+.lc-tilt { position: absolute; inset: 0; }
+.lc-face, .lc-shadow { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.lc-shadow { opacity: 0.42; }
+.lc-glint {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 38%, rgba(255, 248, 225, 0.42) 49%, rgba(255, 255, 255, 0) 60%) 50% 50% / 300% 300%;
+  clip-path: polygon(4.6% 0, 95.4% 0, 100% 3.3%, 100% 96.7%, 95.4% 100%, 4.6% 100%, 0 96.7%, 0 3.3%);
+}
+
+#infobox {
+  position: absolute; z-index: 400; padding: 0 2px 4px;
+  border-style: solid; border-width: 6px; border-image: var(--img-tip) 3 fill / 6px stretch; image-rendering: pixelated;
+  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.5)); overflow: hidden;
+  opacity: 0; transform: translateY(14px); pointer-events: none;
+  transition: opacity 200ms, transform 280ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+#infobox.on { opacity: 1; transform: none; pointer-events: auto; }
+#infobox.dragging { opacity: 0.2; }
+.ib-title { padding: 2px 4px 6px; font-size: 18px; font-weight: 700; line-height: 1.2; text-align: center; color: var(--cream); overflow-wrap: anywhere; }
+.ib-body {
+  padding: 3px 7px; border-style: solid; border-width: 6px; border-image: var(--img-inner) 3 fill / 6px stretch; image-rendering: pixelated;
+  font: 15px/1.45 var(--read); color: #2a1c12; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden;
+}
+.ib-body b { font-weight: 600; }
+.ib-body em { color: #6b5a44; }
+.ib-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding-top: 8px; }
+.badge { padding: 2px 10px; font-size: 13px; line-height: 1.35; clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px); }
+
+/* ---------- writing: the capture sheet ---------- */
+#editor {
+  position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; padding: calc(10px + var(--safe-t)) 10px 0;
+  background: rgba(10, 8, 6, 0.78); opacity: 0; transition: opacity 160ms;
+}
+#editor.on { opacity: 1; }
+.ed-paper {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; width: min(100%, 640px); margin: 0 auto; padding: 4px;
+  border-style: solid; border-width: 12px; border-image: var(--img-plaque) 3 fill / 12px stretch; image-rendering: pixelated;
+  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.5));
+}
+.ed-head { display: flex; gap: 12px; align-items: center; }
+#ed-face { flex: none; width: 88px; height: 124px; filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, 0.45)); }
+.ed-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.3; color: var(--cream-dim); }
+#ed-kind { font-size: 18px; font-weight: 700; color: var(--cream); }
+#ed-text {
+  flex: 1; min-height: 0; width: 100%; resize: none; margin: 0; padding: 0 12px;
+  border: 3px solid #2b1d12; border-radius: 2px; outline: none;
+  background: repeating-linear-gradient(#efe3c6 0 27px, #e0d0aa 27px 28px); background-attachment: local;
+  color: #22190f; font: 17px/28px var(--read); -webkit-user-select: text; user-select: text; caret-color: #8e2b2b;
+}
+#ed-text::placeholder { color: #9a8763; font-style: italic; }
+.ed-bar { display: flex; align-items: center; gap: 10px; width: min(100%, 640px); margin: 0 auto; padding: 10px 0 calc(10px + var(--safe-b)); }
+.ed-bar .spacer { flex: 1; }
+#ed-done { min-width: 120px; min-height: 52px; font-size: 18px; }
+
+/* ---------- bottom sheets: decks and tuning ---------- */
+.sheet {
+  position: fixed; z-index: 45; inset: 0; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(6, 5, 4, 0.55); opacity: 0; transition: opacity 200ms;
+}
+.sheet.on { opacity: 1; }
+.sheet-panel {
+  width: min(100% - 12px, 520px); max-height: 86%; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
+  padding: 6px 8px calc(16px + var(--safe-b));
+  border-style: solid; border-width: 12px 12px 0; border-image: var(--img-tip) 3 fill / 12px 12px 0 stretch; image-rendering: pixelated;
+  transform: translateY(40px); transition: transform 280ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+.sheet.on .sheet-panel { transform: none; }
+.sheet h2 { margin: 2px 0 10px; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+.sheet h3 { margin: 18px 0 8px; font-size: 15px; font-weight: 600; color: var(--cream-dim); }
+.sheet-note { margin: 0 0 12px; font: 14px/1.45 var(--read); color: #d9cdb6; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.deck-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.deck-row { display: flex; gap: 10px; align-items: stretch; }
+.deck-pick {
+  flex: 1; min-width: 0; min-height: 56px; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 2px 10px; text-align: left; cursor: pointer;
+  border-style: solid; border-width: 6px; border-image: var(--img-inner) 3 fill / 6px stretch; image-rendering: pixelated; background: none; color: var(--ink);
+}
+.deck-pick[aria-current="true"] { outline: 3px solid var(--gold); outline-offset: 1px; }
+.deck-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-count { font-size: 13px; color: #5d4a33; }
+.deck-input {
+  flex: 1; min-width: 0; min-height: 52px; padding: 0 12px; font: 600 17px var(--pixel); color: var(--ink);
+  border: 3px solid #2b1d12; border-radius: 2px; background: #f4ecd8; -webkit-user-select: text; user-select: text;
+}
+
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+.seg button {
+  min-height: 48px; padding: 0 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+  border-style: solid; border-width: 6px; border-image: var(--img-plaque) 3 fill / 6px stretch; image-rendering: pixelated; background: none;
+}
+.seg button[aria-pressed="true"] { border-image-source: var(--img-plaqueLit); outline: 3px solid var(--gold); outline-offset: 1px; }
+.slider { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 10px; margin-bottom: 6px; }
+.slider label { font-size: 15px; }
+.slider-v { font: 14px var(--read); color: var(--cream-dim); font-variant-numeric: tabular-nums; }
+.slider input { grid-column: 1 / -1; width: 100%; height: 36px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; touch-action: pan-x; }
+.slider input::-webkit-slider-runnable-track { height: 10px; background: #2b2f35; border: 2px solid #0e1012; }
+.slider input::-moz-range-track { height: 10px; background: #2b2f35; border: 2px solid #0e1012; }
+.slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 28px; margin-top: -11px; background: #b08852; border: 3px solid #1a1210; box-shadow: inset 2px 2px 0 #e8c27a; }
+.slider input::-moz-range-thumb { width: 18px; height: 24px; background: #b08852; border: 3px solid #1a1210; border-radius: 0; }
+.switch { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 15px; cursor: pointer; }
+.switch input { width: 26px; height: 26px; accent-color: #d9a441; }
+.saved-note, .build { font-size: 13px; color: var(--cream-dim); }
+.build { margin-top: 16px; }
