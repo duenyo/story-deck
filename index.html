@@ -14,6 +14,7 @@
 <link rel="preload" href="fonts/lora-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/sheets.css">
+<link rel="stylesheet" href="css/write.css">
 <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -26,6 +27,7 @@
   <span id="plaque-line" class="plaque-line">&nbsp;</span>
 </button>
 <button id="new-idea" class="btn btn-lit" type="button">+ Idea</button>
+<button id="write-btn" class="btn" type="button">Write</button>
 <p id="hint" aria-live="polite"></p>
 
 <div id="lift">
@@ -37,6 +39,104 @@
     <div class="ib-badges"></div>
   </div>
 </div>
+
+<section id="typewriter" hidden aria-label="Typewriter">
+  <header class="tw-top">
+    <button id="tw-back" class="btn btn-small" type="button" aria-label="Back to the table"><span class="back-arrow" aria-hidden="true"></span><span class="back-label">Table</span></button>
+    <button id="tw-deck" class="tw-deck plaque" type="button" aria-haspopup="true"><span id="tw-deck-name">My Deck</span><span class="caret-down" aria-hidden="true"></span></button>
+    <button id="tw-toc-btn" class="btn btn-small tw-toc-btn" type="button">Scenes</button>
+    <span class="tw-spacer"></span>
+    <button id="tw-chip" class="tw-chip" type="button" aria-label="Today’s words and the month"><canvas id="tw-chip-candle" class="px" aria-hidden="true"></canvas><span id="tw-chip-today">0</span></button>
+    <button id="tw-sync" class="lamp" type="button" data-sync-lamp><span class="lamp-dot" aria-hidden="true"></span><span class="lamp-label">Sign in to sync</span></button>
+    <button id="tw-drive" class="btn btn-small tw-wide" type="button">Save to Drive</button>
+    <button id="tw-more" class="btn btn-small" type="button" aria-label="Font, paper and downloads">More</button>
+  </header>
+
+  <div id="tw-deck-pop" class="tw-pop" hidden>
+    <div id="tw-deck-list"></div>
+    <button id="tw-deck-rename" class="menu-item" type="button">Rename this deck</button>
+    <button id="tw-deck-new" class="menu-item" type="button">+ New deck</button>
+  </div>
+  <div id="tw-sync-pop" class="tw-pop" hidden>
+    <p id="sync-who" class="pop-note"></p>
+    <p class="pop-note">Your words save on this device first, then sync to every device you sign in on.</p>
+    <button class="btn btn-small" type="button" data-sync-out id="tw-signout">Sign out</button>
+  </div>
+  <div id="tw-more-pop" class="tw-pop" hidden>
+    <h3>Font</h3>
+    <div id="tw-font" class="seg"><button type="button" data-v="lora">Lora</button><button type="button" data-v="courier">Courier</button><button type="button" data-v="atkinson">Atkinson</button></div>
+    <h3>Size</h3>
+    <div class="row"><button id="tw-size-down" class="btn btn-small" type="button" aria-label="Smaller text">A−</button><button id="tw-size-up" class="btn btn-small" type="button" aria-label="Bigger text">A+</button></div>
+    <h3>Paper</h3>
+    <div id="tw-paper" class="seg two"><button type="button" data-v="light">Day</button><button type="button" data-v="night">Night</button></div>
+    <label class="switch"><input id="tw-scroll-on" type="checkbox"> Keep the line I’m typing at the same height</label>
+    <div class="row tw-narrow-only"><button id="tw-drive-2" class="btn btn-lit" type="button">Save to Drive</button><button id="tw-versions-2" class="btn" type="button">Versions</button></div>
+    <h3>Download</h3>
+    <div class="row"><button id="tw-dl-docx" class="btn btn-small" type="button">Word</button><button id="tw-dl-md" class="btn btn-small" type="button">Markdown</button><button id="tw-dl-json" class="btn btn-small" type="button">Backup</button></div>
+  </div>
+
+  <div class="tw-body">
+    <aside id="tw-side-left" class="tw-side left">
+      <nav id="tw-toc" class="tw-toc" aria-label="Scenes">
+        <div class="tw-label">Scenes</div>
+        <div id="tw-toc-list" class="toc-list"></div>
+        <div class="row"><button id="tw-new-scene" class="btn btn-small" type="button">+ Scene</button><button id="tw-new-loose" class="btn btn-small" type="button">+ Loose scene</button></div>
+      </nav>
+    </aside>
+    <main id="tw-scroll" class="tw-scroll">
+      <article id="tw-page" class="tw-page"></article>
+    </main>
+    <aside id="tw-side-right" class="tw-side right">
+      <div id="tw-stats" class="tw-stats">
+        <div class="desk-candle">
+          <canvas id="tw-candle" class="px" aria-hidden="true"></canvas>
+          <div>
+            <div class="tw-label">Today</div>
+            <div id="tw-today" class="desk-big">0 / 1,667</div>
+            <label class="goal">Daily goal <input id="tw-goal-day" type="number" min="1" inputmode="numeric"></label>
+          </div>
+        </div>
+        <div class="desk-month">
+          <div class="tw-label" id="tw-month-name">This month</div>
+          <div id="tw-month" class="desk-big">0 / 50,000</div>
+          <div id="tw-month-bar" class="month-bar"><span></span></div>
+          <canvas id="tw-cal" class="px cal" role="img" aria-label="This month’s calendar: a wax seal marks each day you reached your goal"></canvas>
+          <div id="tw-pace" class="desk-small"></div>
+          <label class="goal">Month goal <input id="tw-goal-month" type="number" min="1" inputmode="numeric"></label>
+        </div>
+        <div class="desk-sprint">
+          <button id="tw-sprint" class="sprint-btn" type="button"><canvas id="tw-hourglass" class="px" aria-hidden="true"></canvas><span id="tw-sprint-label">Sprint</span></button>
+          <div id="tw-sprint-pick" class="row" hidden><button class="btn btn-small" type="button" data-sprint="10">10m</button><button class="btn btn-small" type="button" data-sprint="15">15m</button><button class="btn btn-small" type="button" data-sprint="20">20m</button><button class="btn btn-small" type="button" data-sprint="30">30m</button></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="tw-strip">
+    <button id="tw-bold" class="strip-btn" type="button" aria-label="Bold"><b>B</b></button>
+    <button id="tw-italic" class="strip-btn" type="button" aria-label="Italic"><i>I</i></button>
+    <button id="tw-break" class="strip-btn" type="button">+ Scene<span class="tw-wide-inline"> break</span></button>
+    <button id="tw-chapter" class="strip-btn" type="button">Chapter</button>
+    <button id="tw-versions" class="strip-btn tw-wide" type="button">Versions</button>
+    <button id="tw-toc-btn2" class="strip-btn tw-narrow-flex" type="button">Scenes</button>
+    <span class="tw-spacer"></span>
+    <span class="strip-count">Scene <b id="tw-scene-words">0</b> · Story <b id="tw-total-words">0</b></span>
+  </footer>
+</section>
+
+<section id="tw-toc-sheet" class="sheet" hidden aria-label="Scenes"><div class="sheet-panel"><div id="tw-toc-sheet-body"></div></div></section>
+<section id="tw-stats-sheet" class="sheet" hidden aria-label="Today and this month"><div class="sheet-panel"><div id="tw-stats-sheet-body"></div></div></section>
+<section id="tw-versions-sheet" class="sheet" hidden aria-label="Earlier versions">
+  <div class="sheet-panel">
+    <h2>Earlier versions</h2>
+    <p id="tw-versions-scene" class="sheet-note"></p>
+    <div id="tw-versions-list" class="versions-list"></div>
+    <div id="tw-version-preview" hidden>
+      <div id="tw-version-text" class="version-text"></div>
+      <button id="tw-version-restore" class="btn btn-lit" type="button">Restore this version</button>
+    </div>
+  </div>
+</section>
 
 <section id="editor" hidden aria-label="Write a card">
   <div id="ed-paper" class="ed-paper">
@@ -62,6 +162,12 @@
     <h2>Decks</h2>
     <ul id="deck-list" class="deck-list"></ul>
     <div class="row"><button id="deck-new" class="btn" type="button">+ New deck</button></div>
+    <h3>Sync</h3>
+    <div class="row">
+      <button id="deck-sync" class="lamp" type="button" data-sync-lamp><span class="lamp-dot" aria-hidden="true"></span><span class="lamp-label">Sign in to sync</span></button>
+      <button id="deck-signout" class="btn btn-small" type="button" data-sync-out hidden>Sign out</button>
+    </div>
+    <p class="sheet-note">Sign in with Google once on each phone and computer. Your own decks then stay the same everywhere (the sample stays on this device).</p>
     <h3>Sample</h3>
     <div id="sample-row"></div>
     <h3>Export</h3>

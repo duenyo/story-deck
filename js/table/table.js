@@ -525,6 +525,18 @@ export function resize() {
   kick();
 }
 
+let stale = false;
+export function refreshIfStale() {
+  if (!stale) return;
+  stale = false;
+  if (decks.app.current !== deckId) {
+    for (const k in scrolls) delete scrolls[k];
+    sprites.clear(); lv = 'deck'; kind = null;
+    refreshCards(); relayout(false); for (const sp of sprites.values()) place(sp);
+  } else { refreshCards(); relayout(false); }
+  updateHints(); kick();
+}
+
 export function initTable(el) {
   canvas = el; ctx = canvas.getContext('2d', { alpha: false });
   tipImg = PANELS.tip().toCanvas(); plaqueImg = PANELS.plaque().toCanvas();
@@ -537,6 +549,8 @@ export function initTable(el) {
   attachInput(canvas, gestures);
   nav.onNav(stack => onNav(stack));
   decks.onChange(ev => {
+    if (ev.type === 'deckmeta') return;
+    if (document.body.classList.contains('in-writer')) { stale = true; return; } // catch up when the table shows again
     if (ev.type === 'deck' && decks.app.current !== deckId) {
       for (const k in scrolls) delete scrolls[k];
       sprites.clear(); lv = 'deck'; kind = null;
@@ -546,7 +560,7 @@ export function initTable(el) {
     refreshCards(); relayout(false); updateHints();
   });
   onSettings(k => { if (k === 'stage') { stage = stageFor(); relayout(false); } kick(); });
-  setSwayWanted(() => phys.sway > 0 && lv !== 'deck');
+  setSwayWanted(() => phys.sway > 0 && lv !== 'deck' && !document.body.classList.contains('in-writer'));
   addTicker(tick);
   updateHints();
 }

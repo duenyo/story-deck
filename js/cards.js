@@ -4,7 +4,8 @@ import { hash, shade } from './art/rng.js';
 import { clean, faceTitle } from './art/font.js';
 import { seedFor } from './art/sigils.js';
 
-export const SHAPE = 1;
+// Shape 2 added `back`: the writing on a card's back (a scene's prose, in prose.js markup).
+export const SHAPE = 2;
 
 // Kinds are stored as one-letter codes. Concept, Thing and Source come later.
 export const KINDS = {
@@ -19,13 +20,20 @@ export const kindOf = c => KINDS[c.kind] || KINDS.i;
 
 export const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-export function makeCard({ deck, kind = 'i', text = '', sub = '', links = [], x = {}, order, id }) {
+export function makeCard({ deck, kind = 'i', text = '', back = '', sub = '', links = [], x = {}, order, id }) {
   const now = Date.now();
   return {
-    v: SHAPE, id: id || uid('c'), deck, kind, sub, text,
+    v: SHAPE, id: id || uid('c'), deck, kind, sub, text, back,
     labels: [], links, pic: { seed: 0, roll: 0, set: false },
     order: order ?? now, born: now, edited: now, from: null, binned: 0, x
   };
+}
+
+// A scene written at the typewriter: its picture comes from its id, since it starts with no words.
+export function makeScene({ deck, order, kind = 'b', x = {} }) {
+  const c = makeCard({ deck, kind, order, x });
+  c.pic = { seed: seedFor(KINDS[kind].name, c.id), roll: 0, set: true };
+  return c;
 }
 
 // While a new card is being written its picture follows the words; once it's made, the seed stays.
@@ -55,8 +63,21 @@ export function splitTitle(text) {
   let sp = first.lastIndexOf(' ', TITLE_MAX - 4); if (sp < 12) sp = TITLE_MAX - 4;
   return { title: first.slice(0, sp).trim() + '…', body: ['…' + first.slice(sp).trim(), rest].filter(Boolean).join('\n') };
 }
-export const titleOf = c => splitTitle(c.text).title;
-export const bodyOf = c => splitTitle(c.text).body;
+// The back's markup stripped to plain words (bold/italic markers and escapes removed).
+export const plainBack = s => String(s || '').replace(/\\(.)|\*/g, (m, ch) => ch || '');
+// A card's title comes from its own words, or from the first words written on its back.
+export function titleOf(c) {
+  const t = splitTitle(c.text).title;
+  if (t || !c.back) return t;
+  return splitTitle(plainBack(c.back).replace(/\s+/g, ' ')).title;
+}
+export function bodyOf(c) {
+  if (splitTitle(c.text).title) return splitTitle(c.text).body;
+  return c.back ? splitTitle(plainBack(c.back).replace(/\s+/g, ' ')).body : '';
+}
+// Words the way a word processor counts them: anything between spaces with a letter or number in it.
+export const countWords = s => { let n = 0; for (const w of String(s || '').split(/\s+/)) if (/[\p{L}\p{N}]/u.test(w)) n++; return n; };
+export const wordsOf = c => countWords(plainBack(c.back));
 
 /* ---------- people dots and connections ---------- */
 const DOT_COLORS = ['#D9772B', '#3D7FD6', '#C94A3B', '#9A7716', '#23857A', '#8A6FB8', '#C04F9A', '#5E8C31'];

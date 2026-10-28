@@ -4,6 +4,7 @@ import { settings, setSetting, saveDefaults, resetAll, isSaved, SLIDERS } from '
 import { makeSheet } from './sheets.js';
 import { toast } from './hud.js';
 import { manuscript, backup, download } from './export.js';
+import * as decks from './decks.js';
 
 const $ = id => document.getElementById(id);
 const STAGES = [['table', 'On the table'], ['screen', 'Own screen'], ['popup', 'Pop-up']];
@@ -39,7 +40,7 @@ function build() {
     try { await navigator.clipboard.writeText(text); toast('Settings copied'); } catch (e) { prompt('Copy these settings:', text); }
   });
   $('t-reset').addEventListener('click', () => { resetAll(); syncControls(); toast('Back to the starting feel (not saved yet)'); });
-  $('t-export-md').addEventListener('click', () => download(manuscript()));
+  $('t-export-md').addEventListener('click', () => download(manuscript(decks.app.current)));
   $('t-export-json').addEventListener('click', () => download(backup()));
 }
 

@@ -16,6 +16,9 @@ export function upgradeCard(c) {
   c.edited = c.edited || c.born;
   c.binned = c.binned || 0;
   c.x = c.x || {};
+  // shape 1 → 2: cards gain a back to write on
+  if (typeof c.back !== 'string') c.back = '';
+  if (c.v < SHAPE) c.v = SHAPE;
   if (c.v > SHAPE) console.warn('Card from a newer version of Story Deck', c.id);
   return c;
 }
@@ -26,5 +29,7 @@ export function upgradeDeck(d) {
   d.name = d.name || 'Untitled deck';
   d.sample = !!d.sample;
   d.born = d.born || Date.now();
+  d.edited = d.edited || d.born;
+  d.x = d.x || {};
   return d;
 }

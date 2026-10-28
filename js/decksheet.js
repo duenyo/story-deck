@@ -99,7 +99,7 @@ export function initDeckSheet() {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') make(); });
     li.append(input, ok); $('deck-list').append(li); input.focus();
   });
-  $('deck-export-md').addEventListener('click', () => download(manuscript()));
+  $('deck-export-md').addEventListener('click', () => download(manuscript(decks.app.current)));
   $('deck-export-json').addEventListener('click', () => download(backup()));
   decks.onChange(() => { if (sheet.isOpen()) render(); });
   return sheet;

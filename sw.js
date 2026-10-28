@@ -1,17 +1,21 @@
 // Offline: every file the app needs is kept on the phone, so it opens and works in airplane mode.
 // Bump VERSION with every change so phones fetch the new files (they update in the background).
-const VERSION = 'sd-m1-02';
+const VERSION = 'sd-m2-01';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/base.css', 'css/sheets.css',
+  'css/base.css', 'css/sheets.css', 'css/write.css',
   'js/main.js', 'js/nav.js', 'js/navmap.js', 'js/loop.js', 'js/hud.js', 'js/settings.js', 'js/sheets.js',
   'js/cards.js', 'js/upgrade.js', 'js/storage.js', 'js/decks.js', 'js/sample.js', 'js/editor.js',
-  'js/export.js', 'js/decksheet.js', 'js/tuning.js',
+  'js/export.js', 'js/decksheet.js', 'js/tuning.js', 'js/export/docx.js',
+  'js/write/prose.js', 'js/write/manuscript.js', 'js/write/stats.js', 'js/write/versions.js', 'js/write/pixelart.js', 'js/write/desk.js', 'js/write/typewriter.js',
+  'js/sync/config.js', 'js/sync/firebase.js', 'js/sync/sync.js', 'js/sync/drive.js', 'js/sync/ui.js', 'vendor/firebase.js',
   'js/art/rng.js', 'js/art/sigils.js', 'js/art/pixels.js', 'js/art/font.js', 'js/art/face.js', 'js/art/panels.js', 'js/art/cache.js',
   'js/table/table.js', 'js/table/layouts.js', 'js/table/input.js',
   'js/lift/lift.js', 'js/lift/infobox.js',
   'fonts/pixelify-sans-latin-400-normal.woff2', 'fonts/pixelify-sans-latin-600-normal.woff2', 'fonts/pixelify-sans-latin-700-normal.woff2',
-  'fonts/lora-latin-400-normal.woff2', 'fonts/lora-latin-400-italic.woff2', 'fonts/lora-latin-600-normal.woff2',
+  'fonts/lora-latin-400-normal.woff2', 'fonts/lora-latin-400-italic.woff2', 'fonts/lora-latin-600-normal.woff2', 'fonts/lora-latin-600-italic.woff2',
+  'fonts/courier-prime-latin-400-normal.woff2', 'fonts/courier-prime-latin-400-italic.woff2', 'fonts/courier-prime-latin-700-normal.woff2',
+  'fonts/atkinson-hyperlegible-latin-400-normal.woff2', 'fonts/atkinson-hyperlegible-latin-400-italic.woff2', 'fonts/atkinson-hyperlegible-latin-700-normal.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/new-idea-96.png'
 ];
 

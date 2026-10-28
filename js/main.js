@@ -17,6 +17,7 @@ applyFx();
 onSettings(applyFx);
 initEditor();
 const sampleLink = location.hash.startsWith('#sample=') ? location.hash.slice(8) : null;
+const wantsWriter = new URLSearchParams(location.search).has('write') || (() => { try { return localStorage.getItem('sd.screen') === 'write' && !location.search; } catch (e) { return false; } })();
 if (location.search || location.hash) history.replaceState(null, '', location.pathname);
 nav.setLeaveWarning(() => toast('Swipe back again to close Story Deck', { ms: 2400 }));
 onStorageError(() => toast('Couldn’t save on this device. Export a backup from the deck list.', { ms: 6000 }));
@@ -40,12 +41,26 @@ addEventListener('hashchange', () => {
 async function start() {
   await decks.load();
   if (sampleLink) await loadSampleLink(sampleLink);
-  const [table, lift, deckSheet, tuning] = await Promise.all([
-    import('./table/table.js'), import('./lift/lift.js'), import('./decksheet.js'), import('./tuning.js')
+  const [table, lift, deckSheet, tuning, writer, syncUi] = await Promise.all([
+    import('./table/table.js'), import('./lift/lift.js'), import('./decksheet.js'), import('./tuning.js'),
+    import('./write/typewriter.js'), import('./sync/ui.js')
   ]);
   table.initTable($('table'));
   lift.initLift();
   const decksUi = deckSheet.initDeckSheet(), tuningUi = tuning.initTuning();
+
+  // The typewriter and sync
+  writer.initWriter();
+  syncUi.initSyncUi();
+  writer.setWriterHooks({
+    saveToDrive: id => syncUi.saveToDrive(id),
+    syncClick: () => syncUi.lampClick($('tw-sync-pop')),
+    onOpen: () => syncUi.warmUp(),
+    onClose: () => { table.refreshIfStale(); plaqueText(); }
+  });
+  $('write-btn').addEventListener('click', () => writer.openWriter());
+  $('deck-sync').addEventListener('click', () => syncUi.lampClick(null));
+  document.querySelectorAll('[data-sync-out]').forEach(b => b.addEventListener('click', () => { $('tw-sync-pop').hidden = true; syncUi.signOut(); }));
 
   table.setActions({
     lift: (id, ctx) => nav.push({ lv: 'lifted', id, ctx }),
@@ -71,8 +86,9 @@ async function start() {
   };
   nav.onNav(plaqueText); decks.onChange(plaqueText); plaqueText();
   if (document.fonts) document.fonts.ready.then(() => import('./loop.js').then(l => l.kick()));
-  window.storyDeck = { decks, nav, table }; // for poking at from the browser console
+  window.storyDeck = { decks, nav, table, writer }; // for poking at from the browser console
   document.body.classList.add('ready');
+  if (wantsWriter && !editorOpen()) writer.openWriter(); // back where you were writing
 }
 start().catch(err => { console.error(err); toast('Story Deck couldn’t start: ' + (err && err.message || err), { ms: 10000 }); });
 

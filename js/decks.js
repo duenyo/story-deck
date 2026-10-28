@@ -6,6 +6,7 @@ import { uid, indexDeck } from './cards.js';
 import { SAMPLE_ID, buildSample, looksLikeSample } from './sample.js';
 
 export const app = { decks: new Map(), cards: new Map(), meta: {}, current: null, lastOwn: null };
+export const FIRST_DECK = 'my-deck';
 const listeners = new Set();
 export const onChange = fn => listeners.add(fn);
 const emit = ev => listeners.forEach(fn => { try { fn(ev); } catch (e) { console.error(e); } });
@@ -32,8 +33,9 @@ export async function load() {
 
   const own = ownDecks();
   if (!own.length) {
+    // Every device's first deck shares one id, so two new devices meet in the same deck when they sync.
     const hinted = lastOwnHint();
-    const d = { v: 1, id: hinted || uid('d'), name: 'My Deck', sample: false, born: Date.now() };
+    const d = { v: 1, id: hinted || FIRST_DECK, name: 'My Deck', sample: false, born: Date.now(), edited: 0, x: {} };
     app.decks.set(d.id, d); store.putDeck(d);
   }
   app.lastOwn = app.decks.has(meta.lastOwn) && !app.decks.get(meta.lastOwn).sample ? meta.lastOwn : ownDecks()[0].id;
@@ -64,6 +66,8 @@ export function deckIndex(id = app.current) {
   return ixCache.ix;
 }
 
+// The deck the typewriter writes in: the one you're in, or your last own deck if that's the sample.
+export const writingDeckId = () => captureDeckId();
 // Where a new idea goes: the deck you're in, unless it's the sample, then your last own deck.
 export function captureDeckId() {
   const cur = app.decks.get(app.current);
@@ -112,15 +116,41 @@ export function switchDeck(id) {
   emit({ type: 'deck', id });
 }
 
-export function newDeck(name) {
-  const d = { v: 1, id: uid('d'), name: (name || '').trim() || 'New Deck', sample: false, born: Date.now() };
+export function newDeck(name, { open = true } = {}) {
+  const now = Date.now();
+  const d = { v: 1, id: uid('d'), name: (name || '').trim() || 'New Deck', sample: false, born: now, edited: now, x: {} };
   app.decks.set(d.id, d); store.putDeck(d);
-  switchDeck(d.id);
+  if (open) switchDeck(d.id); else emit({ type: 'deckmeta', id: d.id });
   return d;
 }
 export function renameDeck(id, name) {
   const d = app.decks.get(id); if (!d || !name.trim()) return;
-  d.name = name.trim(); store.putDeck(d); emit({ type: 'rename', id });
+  d.name = name.trim(); d.edited = Date.now(); store.putDeck(d); emit({ type: 'rename', id });
+}
+// Deck details that change often (word counts by day): saved without disturbing the table.
+export function saveDeckMeta(d) {
+  d.edited = Date.now(); store.putDeck(d); emit({ type: 'deckmeta', id: d.id });
+}
+
+/* ---------- changes arriving from another device (sync.js) ---------- */
+export function applyRemoteCard(card) {
+  app.cards.set(card.id, card);
+  version++;
+  store.putCards([card]);
+  emit({ type: 'remote', id: card.id, deck: card.deck });
+}
+export function applyRemoteDeck(deck, { replaceIds = [] } = {}) {
+  app.decks.set(deck.id, deck); store.putDeck(deck);
+  replaceIds.forEach(id => { if (id !== deck.id) { app.decks.delete(id); store.delDeck(id); } });
+  if (!app.decks.has(app.current)) { app.current = deck.id; remember('current', deck.id); }
+  if (!app.decks.has(app.lastOwn)) { app.lastOwn = deck.id; remember('lastOwn', deck.id); setLastOwnHint(deck.id); }
+  version++;
+  emit({ type: 'deck', id: app.current, remote: true });
+}
+export function removeRemoteCard(id) {
+  if (!app.cards.delete(id)) return;
+  version++; store.delCards([id]);
+  emit({ type: 'remote', id });
 }
 
 async function installSample(data) {

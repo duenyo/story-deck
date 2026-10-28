@@ -75,6 +75,13 @@ addEventListener('popstate', e => {
 const rearm = () => { if (armed && activated()) sync(); };
 addEventListener('pointerup', rearm, true);
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') { if (back()) e.preventDefault(); return; }
+  if (e.key === 'Escape') {
+    // Escape closes an open menu first, and never takes you out of the typewriter by surprise.
+    const pop = document.querySelector('.tw-pop:not([hidden])');
+    if (pop) { pop.hidden = true; e.preventDefault(); return; }
+    if (top().lv === 'write') return;
+    if (back()) e.preventDefault();
+    return;
+  }
   rearm();
 }, true);

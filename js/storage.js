@@ -1,6 +1,6 @@
 // Device first: every change goes straight into the phone's own database (IndexedDB) and works offline.
 // A card being typed is also mirrored to localStorage on every keystroke, so nothing is lost if the app is killed.
-const NAME = 'story-deck', VERSION = 1;
+const NAME = 'story-deck', VERSION = 2; // 2: earlier versions of what's written on cards
 let dbp = null;
 const errors = new Set();
 export const onStorageError = fn => errors.add(fn);
@@ -14,7 +14,9 @@ function open() {
       if (!d.objectStoreNames.contains('decks')) d.createObjectStore('decks', { keyPath: 'id' });
       if (!d.objectStoreNames.contains('cards')) d.createObjectStore('cards', { keyPath: 'id' }).createIndex('deck', 'deck');
       if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'k' });
+      if (!d.objectStoreNames.contains('versions')) d.createObjectStore('versions', { keyPath: 'vid' }).createIndex('card', 'card');
     };
+    r.onblocked = () => console.warn('Story Deck is open in another tab with an older version; close it to finish updating');
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
@@ -45,6 +47,28 @@ export const delCards = ids => run(['cards'], 'readwrite', t => { const s = t.ob
 export const putDeck = deck => run(['decks'], 'readwrite', t => { t.objectStore('decks').put(deck); }).catch(fail);
 export const delDeck = id => run(['decks'], 'readwrite', t => { t.objectStore('decks').delete(id); }).catch(fail);
 export const setMeta = (k, v) => run(['meta'], 'readwrite', t => { t.objectStore('meta').put({ k, v }); }).catch(fail);
+
+/* ---------- earlier versions, kept on this device ---------- */
+const KEEP_VERSIONS = 80;
+export function putVersion(v) {
+  return run(['versions'], 'readwrite', t => {
+    const s = t.objectStore('versions');
+    s.put(v);
+    const r = s.index('card').getAll(v.card);
+    r.onsuccess = () => {
+      const all = r.result.sort((a, b) => b.at - a.at);
+      all.slice(KEEP_VERSIONS).forEach(old => s.delete(old.vid));
+    };
+  }).catch(fail);
+}
+export function getVersions(cardId) {
+  return run(['versions'], 'readonly', t => {
+    let out = [];
+    const r = t.objectStore('versions').index('card').getAll(cardId);
+    r.onsuccess = () => { out = r.result.sort((a, b) => b.at - a.at); };
+    return () => out;
+  });
+}
 
 /* ---------- the card being typed, mirrored synchronously ---------- */
 const PENDING = 'sd.pending';
